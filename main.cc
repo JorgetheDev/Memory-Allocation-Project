@@ -90,11 +90,13 @@ int main()
 		  }
 	      }
 	    //if all partitions are full, display message
-	    if(partitions[0].empty == false && partitions[1].empty == false && partitions[2].empty == false && partitions[3].empty == false && partitions[4].empty == false && partitions[5].empty == false && partitions[6].empty == false)
-	      {
-		cout << "all were full restarting search" << endl;
-	       
-	      }
+	   
+	  }
+	//if all partitions are full, display message
+	if(partitions[0].empty == false && partitions[1].empty == false && partitions[2].empty == false && partitions[3].empty == false && partitions[4].empty == false && partitions[5].empty == false && partitions[6].empty == false)
+	  {
+	    cout << "all were full restarting search" << endl;
+	    i = i-1;
 	  }
 	
 	totalTime = totalTime + time;
@@ -112,6 +114,13 @@ int main()
    process *unequalProcess = new process[1000];                              // set new processes and partition pointers
   process *unequalPartition = new process[7];
 
+  for(int i = 0; i < numProcesses; i++)
+    {
+      memoryRange = rand() % 16 + 1;
+      unequalProcess[i].memory_size = memoryRange;
+      timeRange = rand() % 10 + 1;
+      unequalProcess[i].time_to_execute = timeRange;
+    }
   unequalPartition[0].memory_size = 2;                                      //following initialization sets memory sizes for the partitions
   unequalPartition[1].memory_size = 4;
   unequalPartition[2].memory_size = 6;
@@ -131,9 +140,9 @@ int main()
 	    {
 	      cout << "current process: " << i << endl;
 	      cout << "testing for partition: " << y << endl;
-	      if(unequalPartition[y].empty == true && processes[i].memory_size <= unequalPartition[y].memory_size)  //if process fits in partition and if the partition is free, insert it and set empty as false
+	      if(unequalPartition[y].empty == true && unequalProcess[i].memory_size <= unequalPartition[y].memory_size)  //if process fits in partition and if the partition is free, insert it and set empty as false
 		{
-		  unequalPartition[y].time_to_execute = processes[i].time_to_execute;
+		  unequalPartition[y].time_to_execute = unequalProcess[i].time_to_execute;
 		  unequalPartition[y].empty = false;
 		  goto outerloop2;
 		}
@@ -151,13 +160,14 @@ int main()
 		      unequalPartition[y].empty = true;
 		    }
 		}
+	    }
 	      //if all partitions are full, display message
 	  if(unequalPartition[0].empty == false && unequalPartition[1].empty == false && unequalPartition[2].empty == false && unequalPartition[3].empty == false && unequalPartition[4].empty == false && unequalPartition[5].empty == false && unequalPartition[6].empty == false)
 	    {
 	      cout << "all partitions were full, restarting search" << endl;
+	      i = i-1;
 	    }
 	    }
-	}
   totalTime2 = totalTime2 + time2;
   // }
 
@@ -169,12 +179,20 @@ int main()
       cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
    
       process *dynamicProcess = new process[1000];                                            //this section focuses on dynamic partitioning
-      process dynamicPartition[6][1];                                                         // create a 2D array that will hold certain amount of processes in the partition
+      process dynamicPartition[6];                                                         // create a 2D array that will hold certain amount of processes in the partition
 
       for(int i = 0; i < numProcesses; i++)
 	{
 	  memoryRange = rand() % 16 + 1;
 	  dynamicProcess[i].memory_size = memoryRange; 
+	  timeRange = rand() % 10 + 1;
+	  dynamicProcess[i].time_to_execute = timeRange;
+	  
+	}
+      for(int i = 0; i < 5; i++)
+	{
+	  dynamicPartition[i].memory_size = 0;
+	  dynamicPartition[i].time_to_execute = 0;
 	}
       int time3 = 0;                                                                          // create new timer for dynamic partitioning
       int size = 0;
@@ -183,22 +201,22 @@ int main()
       for(int i = 0; i < numProcesses;i++)                                                    // loop through every processes
 	{
 	outerloop3:
+	  size = 0;
 	  time3++;                                                                            // increment timer
-	  for(int y = 0; y < 6; y++)                                                          // loop through each process that is in the partition, if any
+	  for(int y = 0; y < 5; y++)                                                          // loop through each process that is in the partition, if any
 	    {
-	      cout << "current process: " << i << endl;
-	      size += dynamicPartition[i][y].memory_size;                                     // count the amount of memory in the partition with the current process
-	      for(int k = 0; k < 6; k++)
+	      size = dynamicProcess[i].memory_size;                                     // count the amount of memory in the partition with the current process
+	      for(int k = 0; k < 5; k++)
 		{
-		  size += dynamicPartition[0][k].memory_size;
+		  size += dynamicPartition[k].memory_size;
 		}
 	      if(size < 64)                                                                   // if the amount of memory is less than the limit, insert it
 		{
-		  if(dynamicPartition[0][y].empty == true)                                    // check as well if there is any space left in the partition 
+		  if(dynamicPartition[y].empty == true)                                    // check as well if there is any space left in the partition 
 		    {
-		      dynamicPartition[0][y].memory_size = dynamicProcess[i].memory_size;                  //insert the memory size as well as the time unit
-		      dynamicPartition[0][y].time_to_execute = dynamicProcess[i].time_to_execute;
-		      dynamicPartition[0][y].empty = false;                                    // mark the section of the partition as full
+		      dynamicPartition[y].memory_size = dynamicProcess[i].memory_size;                  //insert the memory size as well as the time unit
+		      dynamicPartition[y].time_to_execute = dynamicProcess[i].time_to_execute;
+		      dynamicPartition[y].empty = false;                                    // mark the section of the partition as full
 		      goto outerloop3;                                                       // jump back to the beginning
 		    } 
 		}
@@ -206,23 +224,25 @@ int main()
 		{
 		  cout << "partition was full, waiting till empty spot is open..." << endl;
 		}
-	      if(dynamicPartition[0][y].time_to_execute > 0)                                 // if the timer for the process in the partition is greater than 0, decrement it by 1
+	      if(dynamicPartition[y].time_to_execute > 0)                                 // if the timer for the process in the partition is greater than 0, decrement it by 1
 		{
-		  dynamicPartition[0][y].time_to_execute-=1;
-		  cout << "Execution time: " << dynamicPartition[0][y].time_to_execute << endl;
-		  if(dynamicPartition[0][y].time_to_execute == 0)                            // if the timer equals 0, free that space up from the partition
+		  dynamicPartition[y].time_to_execute-=1;
+		  cout << "Partition: " << y << "..Execution time: " << dynamicPartition[y].time_to_execute << endl;
+		  if(dynamicPartition[y].time_to_execute == 0)                            // if the timer equals 0, free that space up from the partition
 		    {
-		      cout <<"partition has opened" << endl;
-		      dynamicPartition[0][y].empty = true;
+		      cout <<"partition" << y << " has opened" << endl;
+		      dynamicPartition[y].empty = true;
 		    }
 		}
+	    }
 	      // if all space is taken, notify the user and restart the search
-	      if(dynamicPartition[0][0].empty == false && dynamicPartition[0][1].empty == false && dynamicPartition[0][2].empty == false && dynamicPartition[0][3].empty == false && dynamicPartition[0][4].empty == false && dynamicPartition[0][5].empty == false)
+	      if(dynamicPartition[0].empty == false && dynamicPartition[1].empty == false && dynamicPartition[2].empty == false && dynamicPartition[3].empty == false && dynamicPartition[4].empty == false && dynamicPartition[5].empty == false)
 		{
 		  cout << "All partitions are full, restarting search" << endl;
+		  i = i-1;
 		}
 	    }
-	}
+	
       totalTime3 += time3;
       //	}
                           
